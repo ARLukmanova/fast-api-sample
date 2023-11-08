@@ -6,3 +6,5 @@
 
 ## Как вызвать
 https://clinic-api-p4hb.onrender.com
+
+Автор: Алина Лукманова
