@@ -92,7 +92,3 @@ def update_dog(dog: Dog = fastapi.Body(), pk: int = Path(title="The PK of the do
     else:
         raise HTTPException(status_code=404,
                             detail='The dog is not found.')
-
-import uvicorn
-
-uvicorn.run(app, host="0.0.0.0", port=8000)
