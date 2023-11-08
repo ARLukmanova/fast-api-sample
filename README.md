@@ -5,6 +5,6 @@
 3. Выполняет обновление собаки по pk.
 
 ## Как вызвать
-https://clinic-api-p4hb.onrender.com
+https://dog-api-edxp.onrender.com/
 
 Автор: Алина Лукманова
