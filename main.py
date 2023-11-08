@@ -4,7 +4,6 @@ from fastapi import FastAPI, Query, Path,   HTTPException
 from enum import Enum
 from pydantic import BaseModel
 import random
-from typing import Optional
 from typing import List
 
 
@@ -51,53 +50,49 @@ def root():
 @app.post("/post")
 def get_post() -> Timestamp:
     max_id = max(post_db, key=lambda x: x.id).id
-    new_timestamp = Timestamp(id=max_id + 1, timestamp=random.randint(10,20))
+
+    new_timestamp = Timestamp(id=max_id + 1, timestamp=random.randint(10, 20))
     post_db.append(new_timestamp)
     return new_timestamp
 
 @app.get("/dog")
-def get_dogs(kind: str = Query(default=None, title = 'Breed name')) -> List[Dog]:
-    if (kind is not None) and (kind not in DogType.__members__):
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "items":
-                    [{
-                        "loc": [
-                            {"kind": "Invalid value"}],
-                            "msg": "Input should be " + ', '.join(DogType.__members__.keys()),
-                        "type": "ValidationError"
-                    }]})
-    elif kind is not None and DogType.__members__:
+def get_dogs(kind: DogType = Query(default=None, title='Breed name')) -> List[Dog]:
+    if kind is not None:
         return [dog for dog in dogs_db.values() if dog.kind == kind]
     else:
-        return dogs_db.values()
+        return list(dogs_db.values())
 
 @app.post("/dog")
-def create_dog(dog: Dog= fastapi.Body()) ->Dog:
+def create_dog(dog: Dog = fastapi.Body()) -> Dog:
     if dog.pk in list(dogs_db.keys()):
         raise HTTPException(status_code=409,
                             detail='The specified PK already exists.')
-    elif dog.pk<0:
+    elif dog.pk < 0:
         raise HTTPException(status_code=422,
                             detail='The PK should  not be less than 0')
     dogs_db[dog.pk] = dog
     return dog
 
 @app.get("/dog/{pk}")
-def get_dog_by_pk(pk: int = Path(title="The PK of the dog to get", ge=0)) ->Dog:
+def get_dog_by_pk(pk: int = Path(title="The PK of the dog to get", ge=0)) -> Dog:
     if pk in dogs_db:
         return dogs_db[pk]
     else:
-        return {"message": "Dog is not found"}
+        raise HTTPException(status_code=404,
+                            detail='The dog is not found.')
 
 @app.patch("/dog/{pk}")
-def update_dog(dog: Dog = fastapi.Body(), pk: int = Path(title="The PK of the dog to update", ge=0)) ->Dog:
+def update_dog(dog: Dog = fastapi.Body(), pk: int = Path(title="The PK of the dog to update", ge=0)) -> Dog:
     if pk in dogs_db and pk == dog.pk:
         dogs_db[pk] = dog
         return dog
-    elif pk!= dog.pk:
+    elif pk != dog.pk:
         raise HTTPException(status_code=422,
                             detail="The PK can't be changed.")
     else:
-        return {"detail": "Dog is not found"}
+        raise HTTPException(status_code=404,
+                            detail='The dog is not found.')
+
+import uvicorn
+
+uvicorn.run(app, host="0.0.0.0", port=8000)
